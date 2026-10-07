@@ -1,8 +1,37 @@
+"use client";
+
+import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 const ranks = ["S", "A", "B", "C", "D"];
 
 export default function CreatePage() {
+  const [photo, setPhoto] = useState<File | null>(null);
+const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+useEffect(() => {
+  if (!photo) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    if (typeof reader.result === "string") {
+      setPreviewUrl(reader.result);
+    }
+  };
+
+  reader.readAsDataURL(photo);
+
+  return () => {
+    reader.onload = null;
+
+    if (reader.readyState === FileReader.LOADING) {
+      reader.abort();
+    }
+  };
+}, [photo]);
+
   return (
     <main className="min-h-screen bg-[#f4f6ef] text-[#183b31]">
       <header className="flex h-16 items-center border-b border-[#d7ded3] px-5 sm:px-8">
@@ -30,8 +59,34 @@ export default function CreatePage() {
             type="file"
             accept="image/*"
             required
+            onChange={(event) => {
+  const selectedPhoto = event.currentTarget.files?.[0] ?? null;
+
+  setPreviewUrl(null);
+  setPhoto(
+    selectedPhoto?.type.startsWith("image/") ? selectedPhoto : null,
+  );
+}}
             className="mt-3 block w-full text-sm file:mr-4 file:border-0 file:bg-[#d9ed8d] file:px-4 file:py-2 file:font-semibold"
           />
+
+          {previewUrl && (
+  <div className="mt-4">
+    <p className="mb-2 text-sm text-[#52665d]">
+      写真のプレビュー
+    </p>
+
+    <Image
+      src={previewUrl}
+      alt="選択した食事の写真"
+      width={640}
+      height={480}
+      unoptimized
+      className="max-h-80 h-auto w-full object-contain"
+    />
+  </div>
+)}
+
         </section>
 
         <section className="border-b border-[#d7ded3] py-8">
